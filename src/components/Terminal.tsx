@@ -5,13 +5,14 @@ interface TerminalLine {
   content: string;
   isCommand?: boolean;
   isError?: boolean;
+  isLoading?: boolean;
 }
 
 const Terminal = () => {
   const [lines, setLines] = useState<TerminalLine[]>([
     { content: "Welcome to MikasaAI Terminal [Version 1.0.0]" },
     { content: "Copyright (c) 2024 MikasaAI Corporation. All rights reserved." },
-    { content: "\nType 'help' for available commands." }
+    { content: "\nAvailable commands: github, x, doc, chat, help, clear" }
   ]);
   const [currentInput, setCurrentInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -21,32 +22,63 @@ const Terminal = () => {
     help: () => {
       return `Available commands:
 - help: Show this help message
-- github: Go to GitHub
-- doc: Go to documentation
-- chat [message]: Chat with AI (coming soon)
-- clear: Clear the terminal
-- about: About MikasaAI`;
+- github: Visit GitHub profile
+- x: Visit X (Twitter) profile
+- doc: View documentation
+- chat [message]: Chat with AI
+- clear: Clear terminal`;
     },
     github: () => {
-      window.open('https://github.com', '_blank');
-      return 'Opening GitHub...';
+      window.open('https://github.com/tinobreg', '_blank');
+      return 'Opening GitHub profile...';
+    },
+    x: () => {
+      window.open('https://twitter.com/tinobreg', '_blank');
+      return 'Opening X (Twitter) profile...';
     },
     doc: () => {
       window.open('https://tinobritty.tech', '_blank');
       return 'Opening documentation...';
     },
-    about: () => {
-      return `MikasaAI - Inspired by Attack on Titan
-A next-generation AI assistant ready to help you with your development journey.
-Version: 1.0.0`;
-    },
     chat: async (message: string) => {
       if (!message) return "Please provide a message to chat. Usage: chat [message]";
+      
       setIsProcessing(true);
-      // GPT integration will be added here when API key is provided
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      setIsProcessing(false);
-      return "Chat functionality coming soon...";
+      try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('OPENAI_API_KEY')}`
+          },
+          body: JSON.stringify({
+            model: "gpt-4",
+            messages: [
+              {
+                role: "system",
+                content: "You are MikasaAI, a helpful AI assistant inspired by Attack on Titan. Keep responses concise and relevant."
+              },
+              {
+                role: "user",
+                content: message
+              }
+            ],
+            max_tokens: 150
+          })
+        });
+
+        const data = await response.json();
+        if (data.error) {
+          throw new Error(data.error.message);
+        }
+        
+        return data.choices[0].message.content;
+      } catch (error) {
+        console.error('Chat error:', error);
+        return `Error: ${error.message}. Please ensure your OpenAI API key is set correctly.`;
+      } finally {
+        setIsProcessing(false);
+      }
     },
     clear: () => {
       setLines([]);
@@ -63,18 +95,24 @@ Version: 1.0.0`;
 
     if (commandFn) {
       try {
+        setLines(prev => [...prev, { content: `> ${cmd}`, isCommand: true }]);
+        if (command === 'chat') {
+          setLines(prev => [...prev, { content: 'Processing...', isLoading: true }]);
+        }
+        
         const response = await commandFn(args.join(' '));
+        
         if (response) {
-          setLines(prev => [...prev, 
-            { content: `> ${cmd}`, isCommand: true },
-            { content: response }
-          ]);
+          setLines(prev => {
+            const newLines = prev.filter(line => !line.isLoading);
+            return [...newLines, { content: response }];
+          });
         }
       } catch (error) {
-        setLines(prev => [...prev,
-          { content: `> ${cmd}`, isCommand: true },
-          { content: `Error: ${error.message}`, isError: true }
-        ]);
+        setLines(prev => {
+          const newLines = prev.filter(line => !line.isLoading);
+          return [...newLines, { content: `Error: ${error.message}`, isError: true }];
+        });
       }
     } else {
       setLines(prev => [
@@ -106,7 +144,10 @@ Version: 1.0.0`;
       </div>
       <div className="terminal-content">
         {lines.map((line, i) => (
-          <div key={i} className={`terminal-line ${line.isError ? 'text-red-400' : ''}`}>
+          <div 
+            key={i} 
+            className={`terminal-line ${line.isError ? 'text-red-400' : ''} ${line.isLoading ? 'animate-pulse' : ''}`}
+          >
             {line.isCommand ? (
               <span className="terminal-prompt text-rose-400">{line.content}</span>
             ) : (
@@ -124,7 +165,7 @@ Version: 1.0.0`;
             className="terminal-input"
             autoFocus
             disabled={isProcessing}
-            placeholder={isProcessing ? 'Processing...' : ''}
+            placeholder={isProcessing ? 'Processing...' : 'Type a command...'}
           />
         </div>
         <div ref={bottomRef} />
