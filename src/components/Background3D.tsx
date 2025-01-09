@@ -1,5 +1,5 @@
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Sphere, MeshDistortMaterial, useFrame } from '@react-three/drei';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { OrbitControls, Sphere, MeshDistortMaterial } from '@react-three/drei';
 import { useRef } from 'react';
 import * as THREE from 'three';
 
@@ -8,20 +8,22 @@ const AnimatedSphere = () => {
 
   useFrame(({ clock }) => {
     if (sphereRef.current) {
-      sphereRef.current.rotation.x = clock.getElapsedTime() * 0.2;
-      sphereRef.current.rotation.y = clock.getElapsedTime() * 0.3;
+      // More dynamic rotation for better interactivity
+      sphereRef.current.rotation.x = Math.sin(clock.getElapsedTime() * 0.4) * 0.3;
+      sphereRef.current.rotation.y = Math.cos(clock.getElapsedTime() * 0.3) * 0.3;
+      sphereRef.current.position.y = Math.sin(clock.getElapsedTime() * 0.5) * 0.2;
     }
   });
 
   return (
-    <Sphere ref={sphereRef} visible args={[1, 100, 200]} scale={2}>
+    <Sphere ref={sphereRef} visible args={[1, 100, 200]} scale={2.5}>
       <MeshDistortMaterial
-        color="#B76E79"
+        color="#8B0000" // Dark red color matching Attack on Titan theme
         attach="material"
-        distort={0.5}
-        speed={2}
-        roughness={0.2}
-        metalness={0.8}
+        distort={0.6}
+        speed={1.5}
+        roughness={0.4}
+        metalness={0.9}
       />
     </Sphere>
   );
@@ -29,22 +31,24 @@ const AnimatedSphere = () => {
 
 const Background3D = () => {
   return (
-    <div className="fixed inset-0 -z-10 bg-[#1A1F2C]">
+    <div className="fixed inset-0 -z-10 bg-gradient-to-b from-[#1A0F0F] to-[#2D1F1F]">
       <Canvas
         camera={{ position: [0, 0, 5], fov: 75 }}
-        style={{ background: 'radial-gradient(circle at center, #1A1F2C 0%, #0D1117 100%)' }}
+        style={{ 
+          background: 'radial-gradient(circle at center, #2D1F1F 0%, #1A0F0F 100%)',
+        }}
       >
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[10, 10, 5]} intensity={1} />
-        <pointLight position={[-10, -10, -10]} intensity={0.5} color="#B76E79" />
+        <ambientLight intensity={0.3} />
+        <directionalLight position={[10, 10, 5]} intensity={1.5} color="#FF9999" />
+        <pointLight position={[-10, -10, -10]} intensity={0.8} color="#8B0000" />
         <AnimatedSphere />
         <OrbitControls
           enableZoom={false}
           enablePan={false}
           autoRotate
           autoRotateSpeed={0.5}
-          maxPolarAngle={Math.PI / 2}
-          minPolarAngle={Math.PI / 2}
+          maxPolarAngle={Math.PI / 1.5}
+          minPolarAngle={Math.PI / 2.5}
         />
       </Canvas>
     </div>
