@@ -42,12 +42,17 @@
   background: rgba(0, 0, 0, 0.8);
   border-radius: 10px;
   padding: 20px;
-  width: 600px;
+  width: 700px;
   max-width: 90vw;
-  height: 400px;
+  height: 450px;
   overflow-y: auto;
   position: relative;
-  border: 1px solid rgba(183, 110, 121, 0.2);
+  box-shadow: 0 0 20px rgba(183, 110, 121, 0.2);
+  transition: all 0.3s ease;
+}
+
+.terminal-container:hover {
+  box-shadow: 0 0 30px rgba(183, 110, 121, 0.3);
 }
 
 .terminal-header {
@@ -55,13 +60,14 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 30px;
+  height: 35px;
   background: rgba(0, 0, 0, 0.85);
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
   display: flex;
   align-items: center;
-  padding: 0 10px;
+  padding: 0 15px;
+  border-bottom: 1px solid rgba(183, 110, 121, 0.2);
 }
 
 .terminal-button {
@@ -69,6 +75,11 @@
   height: 12px;
   border-radius: 50%;
   margin-right: 8px;
+  transition: all 0.3s ease;
+}
+
+.terminal-button:hover {
+  transform: scale(1.1);
 }
 
 .terminal-button.red { background: #ff5f56; }
@@ -76,17 +87,21 @@
 .terminal-button.green { background: #27c93f; }
 
 .terminal-content {
-  margin-top: 30px;
+  margin-top: 35px;
   color: #fff;
+  padding: 10px;
 }
 
 .terminal-line {
   margin: 8px 0;
   line-height: 1.5;
+  font-size: 14px;
+  opacity: 0.9;
 }
 
 .terminal-prompt {
   color: #B76E79;
+  margin-right: 8px;
 }
 
 .terminal-input {
@@ -94,8 +109,13 @@
   border: none;
   color: #fff;
   font-family: 'Fira Code', monospace;
+  font-size: 14px;
   width: calc(100% - 20px);
   outline: none;
+}
+
+.terminal-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .floating {
