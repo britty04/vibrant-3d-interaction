@@ -1,5 +1,5 @@
 import Spline from '@splinetool/react-spline';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 
 const Background3D = () => {
@@ -7,14 +7,28 @@ const Background3D = () => {
   const [loadError, setLoadError] = useState(false);
   const { toast } = useToast();
 
+  useEffect(() => {
+    // Reset states when component mounts
+    setIsLoading(true);
+    setLoadError(false);
+    
+    return () => {
+      // Cleanup function
+      setIsLoading(false);
+      setLoadError(false);
+    };
+  }, []);
+
   const handleError = () => {
-    setLoadError(true);
-    setIsLoading(false);
-    toast({
-      title: "3D Scene Error",
-      description: "Failed to load 3D background scene",
-      variant: "destructive",
-    });
+    if (!loadError) {  // Prevent multiple error toasts
+      setLoadError(true);
+      setIsLoading(false);
+      toast({
+        title: "3D Scene Error",
+        description: "Failed to load 3D background scene",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -26,7 +40,7 @@ const Background3D = () => {
       )}
       {!loadError && (
         <Spline 
-          scene="https://prod.spline.design/eCVB5eBuyNhGO3Ud/scene.splinecode"
+          scene="https://prod.spline.design/mRqZwAQVQQhX6duX/scene.splinecode"
           className="w-full h-full"
           onLoad={() => setIsLoading(false)}
           onError={handleError}
