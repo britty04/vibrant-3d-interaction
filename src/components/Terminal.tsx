@@ -49,10 +49,10 @@ const Terminal = () => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('OPENAI_API_KEY')}`
+            'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
           },
           body: JSON.stringify({
-            model: "gpt-4",
+            model: "gpt-4o",
             messages: [
               {
                 role: "system",
@@ -67,15 +67,21 @@ const Terminal = () => {
           })
         });
 
-        const data = await response.json();
-        if (data.error) {
-          throw new Error(data.error.message);
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error?.message || 'Failed to get response from AI');
         }
-        
+
+        const data = await response.json();
         return data.choices[0].message.content;
-      } catch (error) {
+      } catch (error: any) {
         console.error('Chat error:', error);
-        return `Error: ${error.message}. Please ensure your OpenAI API key is set correctly.`;
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: error.message || "Failed to process chat request"
+        });
+        return `Error: ${error.message || 'Failed to process chat request'}`;
       } finally {
         setIsProcessing(false);
       }
@@ -108,7 +114,7 @@ const Terminal = () => {
             return [...newLines, { content: response }];
           });
         }
-      } catch (error) {
+      } catch (error: any) {
         setLines(prev => {
           const newLines = prev.filter(line => !line.isLoading);
           return [...newLines, { content: `Error: ${error.message}`, isError: true }];
