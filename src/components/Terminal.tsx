@@ -5,76 +5,86 @@ interface TerminalLine {
   content: string;
   isCommand?: boolean;
   isError?: boolean;
-  isLoading?: boolean;
 }
 
 const Terminal = () => {
   const [lines, setLines] = useState<TerminalLine[]>([
-    { content: "Welcome to the Walls Terminal [Version 850]" },
-    { content: "© Survey Corps. All rights reserved within Wall Maria, Rose, and Sina." },
-    { content: "\nAvailable commands: scout, titan, rumbling, help, clear" }
+    { content: "Welcome to MikasaAI Terminal [Version 1.0.0]" },
+    { content: "© Survey Corps Technology Division. All rights reserved." },
+    { content: "\nType 'help' to see available commands." }
   ]);
   const [currentInput, setCurrentInput] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const commands = {
-    help: () => {
-      return `Available commands:
-- help: Show this help message (like a good little soldier)
-- scout: Join the Survey Corps
-- titan: Information about Titan types
-- rumbling: Initiate the rumbling (just kidding)
-- clear: Clear terminal (like wiping your memories)`;
+    help: () => `Available commands:
+- help: Display available commands
+- features: Show MikasaAI features
+- roadmap: View project roadmap
+- about: Learn about MikasaAI
+- github: Visit our GitHub
+- twitter: Follow us on Twitter
+- chat: Start AI chat (requires API key)`,
+
+    features: () => `✨ Features:
+- 🤖 Interactive CLI: Simple, user-friendly prompts
+- 📚 Dynamic API Understanding: Parses openai.json
+- 💻 Custom Code Generation: Tailored application code
+- ⚡ Handles API Limitations: Clear constraints
+- 📁 Project Output: Organized project files`,
+
+    roadmap: () => `🗺️ Roadmap:
+1️⃣ Phase 1: Token Launch
+   - Initial token distribution
+   - Community building
+
+2️⃣ Phase 2: Integration
+   - API infrastructure
+   - Developer tools
+
+3️⃣ Phase 3: Ecosystem Growth
+   - Partner integrations
+   - Advanced features`,
+
+    about: () => "MikasaAI: Your AI-powered developer assistant for streamlined application building. Like Mikasa Ackerman, we're here to protect your development process.",
+
+    github: () => {
+      window.open('https://github.com/mikasaai', '_blank');
+      return "Opening GitHub repository... Dedicate your heart! ⚔️";
     },
-    scout: () => {
-      window.open('https://github.com/tinobreg', '_blank');
-      return 'Shinzou wo Sasageyo! Redirecting to the Survey Corps recruitment...';
+
+    twitter: () => {
+      window.open('https://twitter.com/mikasaai', '_blank');
+      return "Following the path to Twitter... Tatakae! 🦅";
     },
-    titan: () => {
-      return `Known Titan Types:
-- Founding Titan
-- Attack Titan
-- Female Titan
-- Armored Titan
-- Colossal Titan
-- Beast Titan
-- Jaw Titan
-- Cart Titan
-- War Hammer Titan`;
-    },
-    rumbling: () => {
+
+    chat: () => {
       toast({
-        title: "Warning from Commander Erwin",
-        description: "The rumbling cannot be initiated without the Founding Titan's power.",
+        title: "API Key Required",
+        description: "Please contact Survey Corps Command to obtain your API key.",
         variant: "destructive",
       });
-      return "ERROR: You need royal blood and the Founding Titan to activate this command.";
-    },
-    clear: () => {
-      setLines([]);
-      return '';
+      return "Error: You need proper authorization to access the AI chat feature. Contact Survey Corps Command for clearance.";
     }
   };
 
-  const handleCommand = async (cmd: string) => {
+  const handleCommand = (cmd: string) => {
     const trimmedCmd = cmd.trim().toLowerCase();
     if (trimmedCmd === '') return;
 
-    const [command, ...args] = trimmedCmd.split(' ');
-    const commandFn = commands[command as keyof typeof commands];
+    const commandFn = commands[trimmedCmd as keyof typeof commands];
+
+    setLines(prev => [...prev, { content: `> ${cmd}`, isCommand: true }]);
 
     if (commandFn) {
-      setLines(prev => [...prev, { content: `> ${cmd}`, isCommand: true }]);
-      const response = await commandFn(args.join(' '));
+      const response = commandFn();
       if (response) {
         setLines(prev => [...prev, { content: response }]);
       }
     } else {
       setLines(prev => [
         ...prev,
-        { content: `> ${cmd}`, isCommand: true },
-        { content: `Error: Command not found. What are they teaching you in training these days? Type 'help' for available commands.`, isError: true }
+        { content: `Error: Unknown command '${cmd}'. What kind of training did you receive? Type 'help' for available commands.`, isError: true }
       ]);
     }
   };
@@ -91,12 +101,12 @@ const Terminal = () => {
   }, [lines]);
 
   return (
-    <div className="terminal-container backdrop-blur-sm bg-black/80 border border-rose-900/20">
+    <div className="terminal-container backdrop-blur-sm bg-black/80">
       <div className="terminal-header">
         <div className="terminal-button red"></div>
         <div className="terminal-button yellow"></div>
         <div className="terminal-button green"></div>
-        <span className="ml-4 text-xs text-gray-400">scout@survey-corps ~ </span>
+        <span className="ml-4 text-xs text-gray-400">mikasa@survey-corps ~ </span>
       </div>
       <div className="terminal-content">
         {lines.map((line, i) => (
@@ -120,8 +130,7 @@ const Terminal = () => {
             onKeyPress={handleKeyPress}
             className="terminal-input"
             autoFocus
-            disabled={isProcessing}
-            placeholder={isProcessing ? 'Processing...' : 'Enter a command, recruit...'}
+            placeholder="Enter a command, soldier..."
           />
         </div>
         <div ref={bottomRef} />
