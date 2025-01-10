@@ -49,6 +49,7 @@
   position: relative;
   box-shadow: 0 0 20px rgba(183, 110, 121, 0.2);
   transition: all 0.3s ease;
+  border: 1px solid rgba(139, 0, 0, 0.3);
 }
 
 .terminal-container:hover {
@@ -67,7 +68,7 @@
   display: flex;
   align-items: center;
   padding: 0 15px;
-  border-bottom: 1px solid rgba(183, 110, 121, 0.2);
+  border-bottom: 1px solid rgba(139, 0, 0, 0.3);
 }
 
 .terminal-button {
@@ -82,9 +83,9 @@
   transform: scale(1.1);
 }
 
-.terminal-button.red { background: #ff5f56; }
-.terminal-button.yellow { background: #ffbd2e; }
-.terminal-button.green { background: #27c93f; }
+.terminal-button.red { background: #8B0000; }
+.terminal-button.yellow { background: #8B4513; }
+.terminal-button.green { background: #556B2F; }
 
 .terminal-content {
   margin-top: 35px;
@@ -100,7 +101,7 @@
 }
 
 .terminal-prompt {
-  color: #B76E79;
+  color: #8B0000;
   margin-right: 8px;
 }
 
