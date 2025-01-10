@@ -5,48 +5,86 @@ interface TerminalLine {
   content: string;
   isCommand?: boolean;
   isError?: boolean;
+  isTable?: boolean;
 }
 
 const Terminal = () => {
   const [lines, setLines] = useState<TerminalLine[]>([
     { content: "Welcome to MikasaAI Terminal [Version 1.0.0]" },
     { content: "© Survey Corps Technology Division. All rights reserved." },
-    { content: "\nType 'help' to see available commands." }
+    { content: "\nType 'help' to see available commands, soldier! 🗡️" }
   ]);
   const [currentInput, setCurrentInput] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  const randomResponses = [
+    "Just like fighting titans, I'll handle this with precision!",
+    "Even Levi would be impressed with that question...",
+    "As expected of you, that's exactly right!",
+    "Interesting... reminds me of something Erwin would say.",
+    "Let me dedicate my heart to answering that!",
+    "SHINZOU WO SASAGEYO! (That means I'm processing your request)",
+    "Even beyond these walls, I'll find you an answer.",
+    "That's a question worthy of the Survey Corps!",
+    "Eren might go berserk over this one...",
+    "Captain Levi would say this needs cleaning up..."
+  ];
+
+  const getRandomResponse = (input: string) => {
+    const response = randomResponses[Math.floor(Math.random() * randomResponses.length)];
+    return `${response}\n\nRegarding "${input}": Let me analyze this with the power of the Founding Titan...`;
+  };
+
   const commands = {
-    help: () => `Available commands:
-- help: Display available commands
-- features: Show MikasaAI features
-- roadmap: View project roadmap
-- about: Learn about MikasaAI
-- github: Visit our GitHub
-- twitter: Follow us on Twitter
-- chat: Start AI chat (requires API key)`,
+    help: () => ({
+      content: `Available Commands:
+┌────────────┬──────────────────────────────────┐
+│ Command    │ Description                      │
+├────────────┼──────────────────────────────────┤
+│ help       │ Display available commands       │
+│ features   │ Show MikasaAI features          │
+│ roadmap    │ View project roadmap            │
+│ about      │ Learn about MikasaAI            │
+│ github     │ Visit our GitHub                │
+│ twitter    │ Follow us on Twitter            │
+│ chat       │ Start interactive chat          │
+└────────────┴──────────────────────────────────┘`,
+      isTable: true
+    }),
 
-    features: () => `✨ Features:
-- 🤖 Interactive CLI: Simple, user-friendly prompts
-- 📚 Dynamic API Understanding: Parses openai.json
-- 💻 Custom Code Generation: Tailored application code
-- ⚡ Handles API Limitations: Clear constraints
-- 📁 Project Output: Organized project files`,
+    features: () => ({
+      content: `╔════ ✨ Features ════════════════════════╗
+║                                        ║
+║ 🤖 Interactive CLI Interface           ║
+║ 📚 Dynamic API Understanding           ║
+║ 💻 Custom Code Generation              ║
+║ ⚡ Smart Resource Management           ║
+║ 📁 Organized Project Structure         ║
+║                                        ║
+╚════════════════════════════════════════╝`,
+      isTable: true
+    }),
 
-    roadmap: () => `🗺️ Roadmap:
-1️⃣ Phase 1: Token Launch
-   - Initial token distribution
-   - Community building
+    roadmap: () => ({
+      content: `╔═══════ Roadmap ═══════════════════════╗
+║                                        ║
+║ Phase 1: Token Launch                  ║
+║ ├─ Initial distribution               ║
+║ └─ Community building                 ║
+║                                        ║
+║ Phase 2: Integration                   ║
+║ ├─ API infrastructure                 ║
+║ └─ Developer tools                    ║
+║                                        ║
+║ Phase 3: Ecosystem Growth              ║
+║ ├─ Partner integrations               ║
+║ └─ Advanced features                  ║
+║                                        ║
+╚════════════════════════════════════════╝`,
+      isTable: true
+    }),
 
-2️⃣ Phase 2: Integration
-   - API infrastructure
-   - Developer tools
-
-3️⃣ Phase 3: Ecosystem Growth
-   - Partner integrations
-   - Advanced features`,
-
-    about: () => "MikasaAI: Your AI-powered developer assistant for streamlined application building. Like Mikasa Ackerman, we're here to protect your development process.",
+    about: () => "MikasaAI: Your AI-powered developer assistant. Like Mikasa Ackerman, we're here to protect your development process. Dedicate your heart to coding! ⚔️",
 
     github: () => {
       window.open('https://github.com/mikasaai', '_blank');
@@ -58,33 +96,36 @@ const Terminal = () => {
       return "Following the path to Twitter... Tatakae! 🦅";
     },
 
-    chat: () => {
-      toast({
-        title: "API Key Required",
-        description: "Please contact Survey Corps Command to obtain your API key.",
-        variant: "destructive",
-      });
-      return "Error: You need proper authorization to access the AI chat feature. Contact Survey Corps Command for clearance.";
+    chat: (input?: string) => {
+      if (!input) {
+        return "Enter your message after 'chat', like: chat What is MikasaAI?";
+      }
+      return getRandomResponse(input);
     }
   };
 
   const handleCommand = (cmd: string) => {
-    const trimmedCmd = cmd.trim().toLowerCase();
+    const trimmedCmd = cmd.trim();
     if (trimmedCmd === '') return;
 
-    const commandFn = commands[trimmedCmd as keyof typeof commands];
+    const [command, ...args] = trimmedCmd.split(' ');
+    const input = args.join(' ');
 
     setLines(prev => [...prev, { content: `> ${cmd}`, isCommand: true }]);
 
+    const commandFn = commands[command.toLowerCase() as keyof typeof commands];
+    
     if (commandFn) {
-      const response = commandFn();
-      if (response) {
+      const response = commandFn(input);
+      if (typeof response === 'string') {
         setLines(prev => [...prev, { content: response }]);
+      } else {
+        setLines(prev => [...prev, response]);
       }
     } else {
       setLines(prev => [
         ...prev,
-        { content: `Error: Unknown command '${cmd}'. What kind of training did you receive? Type 'help' for available commands.`, isError: true }
+        { content: `Error: Unknown command '${command}'. Did you skip training, recruit? Type 'help' for available commands.`, isError: true }
       ]);
     }
   };
@@ -112,7 +153,7 @@ const Terminal = () => {
         {lines.map((line, i) => (
           <div 
             key={i} 
-            className={`terminal-line ${line.isError ? 'text-red-400' : ''}`}
+            className={`terminal-line ${line.isError ? 'text-red-400' : ''} ${line.isTable ? 'whitespace-pre font-mono' : ''}`}
           >
             {line.isCommand ? (
               <span className="terminal-prompt text-rose-400">{line.content}</span>
