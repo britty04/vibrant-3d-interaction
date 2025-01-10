@@ -94,39 +94,83 @@ const Terminal = () => {
     twitter: () => {
       window.open('https://twitter.com/mikasaai', '_blank');
       return "Following the path to Twitter... Tatakae! 🦅";
-    },
-
-    chat: (input?: string) => {
-      if (!input) {
-        return "Enter your message after 'chat', like: chat What is MikasaAI?";
-      }
-      return getRandomResponse(input);
     }
+  };
+
+  // Training data for intelligent responses
+  const responsePatterns = [
+    { keywords: ['hi', 'hello', 'hey'], responses: [
+      "Well, if it isn't a brave soldier! What brings you to our walls today?",
+      "Ah, another recruit! Try not to get eaten by a titan while you're here.",
+      "Welcome to the Survey Corps! Let's hope you last longer than the extras in episode 1..."
+    ]},
+    { keywords: ['how', 'what', 'why', 'when', 'where'], responses: [
+      "Hmm, asking the real questions like Armin would...",
+      "That's the kind of curiosity that gets you promoted in the Survey Corps!",
+      "Let me consult my ODM gear manual... Oh wait, wrong reference."
+    ]},
+    { keywords: ['help', 'assist', 'support'], responses: [
+      "Need backup? Even Mikasa needs help sometimes... rarely, but sometimes.",
+      "I'll assist you like Mikasa assists Eren - minus the obsession part.",
+      "Ready to help! Though I can't promise I'm as reliable as thunder spears..."
+    ]},
+    { keywords: ['thanks', 'thank', 'appreciate'], responses: [
+      "No need for thanks - we're all soldiers here! Unless you're a titan spy...",
+      "Gratitude noted! Now back to protecting humanity (or whatever's left of it).",
+      "You're welcome! Just don't expect me to salute back, I'm busy scanning for titans."
+    ]},
+    { keywords: ['bye', 'goodbye', 'later'], responses: [
+      "Leaving so soon? The titans were just about to join the party!",
+      "Farewell, soldier! Try not to get eaten on your way out.",
+      "Until next time! Remember: beyond these walls is freedom (and certain death)."
+    ]}
+  ];
+
+  const getIntelligentResponse = (input: string) => {
+    const lowercaseInput = input.toLowerCase();
+    
+    // Check for exact command matches first
+    if (commands[lowercaseInput as keyof typeof commands]) {
+      return commands[lowercaseInput as keyof typeof commands]();
+    }
+
+    // Look for keyword matches in the input
+    for (const pattern of responsePatterns) {
+      if (pattern.keywords.some(keyword => lowercaseInput.includes(keyword))) {
+        return {
+          content: pattern.responses[Math.floor(Math.random() * pattern.responses.length)]
+        };
+      }
+    }
+
+    // Default response for unmatched inputs
+    return {
+      content: [
+        "That's an interesting approach... for a titan.",
+        "Even Eren makes more sense sometimes, and he's always screaming.",
+        "Did you learn that in titan school? Because it shows.",
+        "That's cute. Have you considered joining the Garrison? They accept everyone.",
+        "Fascinating input! Almost as fascinating as watching paint dry on the walls.",
+        "Even the Colossal Titan would scratch his head at that one...",
+        "That's... unique. Like Eren's ability to consistently make bad decisions.",
+        "Interesting strategy! Almost as effective as bringing a knife to a titan fight.",
+        "Your words are bold! Like charging at a titan without ODM gear.",
+        "That's one way to do it... if you're trying to get eaten."
+      ][Math.floor(Math.random() * 10)]
+    };
   };
 
   const handleCommand = (cmd: string) => {
     const trimmedCmd = cmd.trim();
     if (trimmedCmd === '') return;
 
-    const [command, ...args] = trimmedCmd.split(' ');
-    const input = args.join(' ');
-
     setLines(prev => [...prev, { content: `> ${cmd}`, isCommand: true }]);
-
-    const commandFn = commands[command.toLowerCase() as keyof typeof commands];
     
-    if (commandFn) {
-      const response = commandFn(input);
-      if (typeof response === 'string') {
-        setLines(prev => [...prev, { content: response }]);
-      } else {
-        setLines(prev => [...prev, response]);
-      }
+    const response = getIntelligentResponse(trimmedCmd);
+    if (typeof response === 'string') {
+      setLines(prev => [...prev, { content: response }]);
     } else {
-      setLines(prev => [
-        ...prev,
-        { content: `Error: Unknown command '${command}'. Did you skip training, recruit? Type 'help' for available commands.`, isError: true }
-      ]);
+      setLines(prev => [...prev, response]);
     }
   };
 
